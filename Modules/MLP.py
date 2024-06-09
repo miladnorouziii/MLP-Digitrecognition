@@ -1,6 +1,7 @@
 import torch.nn as nn
 import torch
 from torch.utils.data import Dataset
+import torch.nn.functional as F
 
 
 class MLP(nn.Module):
@@ -26,6 +27,7 @@ class MLP(nn.Module):
         x = self.hidden_layer2(x)
         x = self.hidden_layer3(x)
         x = self.output_layer(x)
+        x = F.softmax(x, dim=1)
         return x
 
 
