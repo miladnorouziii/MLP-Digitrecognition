@@ -101,9 +101,9 @@ class Main():
         trainDataset = CustomDataset(tensorXTrain, tensorYTrain)
         valDataset = CustomDataset(tensorXVal, tensorYVal)
         testDataset = CustomDataset(tensorXTest, tensorYTest)
-        trainLoader = DataLoader(trainDataset, batch_size=batchSize, shuffle=True).to("cuda")
-        valLoader = DataLoader(valDataset, batch_size=batchSize, shuffle=True).to("cuda")
-        testLoader = DataLoader(testDataset, batch_size=batchSize, shuffle=True).to("cuda")
+        trainLoader = DataLoader(trainDataset, batch_size=batchSize, shuffle=True)
+        valLoader = DataLoader(valDataset, batch_size=batchSize, shuffle=True)
+        testLoader = DataLoader(testDataset, batch_size=batchSize, shuffle=True)
     
 
     def startNN(self):
@@ -129,6 +129,9 @@ class Main():
                 print(f"Model first layer neurons: {hiddenSize1}")
                 print(f"Model second layer neurons: {hiddenSize2}")
                 print(f"Model third layer neurons: {hiddenSize3}")
+                trainLoader.to("cuda")
+                valLoader.to("cuda")
+                testLoader.to("cuda")
                 for epoch in range(iteration):
                     for inputs, labels in trainLoader:
                         #inputs, labels = inputs.to("cuda"), labels.to("cuda")
