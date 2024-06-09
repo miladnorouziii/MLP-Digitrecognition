@@ -145,15 +145,13 @@ class Main():
                     correct = 0
                     total = 0
                     for inputs, labels in valLoader:
-                        labels = labels.type(torch.LongTensor)
                         inputs, labels = inputs.to("cuda"), labels.to("cuda")
-                        #labels = labels.type(torch.LongTensor)
                         outputs = model(inputs)
-                        predicted = (outputs >= 0.5).float()
-                        correct += (predicted == labels).sum().item()
+                        _, predicted_classes = torch.max(outputs, dim=1)  # Get the class with highest probability
+                        correct += (predicted_classes == labels).sum().item()
                         total += labels.size(0)
-                        accuracy = correct / total
-                        print(f"Validation Accuracy: {accuracy:.2f}")
+                    accuracy = correct / total
+                    print(f"Validation Accuracy: {accuracy:.2f}")
                 model.train()
                 with torch.no_grad():
                     correct = 0
@@ -163,8 +161,8 @@ class Main():
                         inputs, labels = inputs.to("cuda"), labels.to("cuda")
                         #labels = labels.type(torch.LongTensor)
                         outputs = model(inputs)
-                        predicted = (outputs >= 0.5).float()
-                        correct += (predicted == labels).sum().item()
+                        _, predicted_classes = torch.max(outputs, dim=1)  # Get the class with highest probability
+                        correct += (predicted_classes == labels).sum().item()
                         total += labels.size(0)
                         accuracy = correct / total
                         print(f"Test Accuracy: {accuracy:.2f}")
