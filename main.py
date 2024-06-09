@@ -107,13 +107,13 @@ class Main():
     
 
     def startNN(self):
-        if True:
+        if self.checkGPU():
             if self.getDatasetPath():
                 self.getUserParams()
                 self.loadDataFromCsv()
                 inputDim = 784
                 outputDim = 10
-                model = MLP(inputDim, hiddenSize1, hiddenSize2, hiddenSize3, outputDim)#.to(device)
+                model = MLP(inputDim, hiddenSize1, hiddenSize2, hiddenSize3, outputDim).to(device)
                 lossFunc = nn.CrossEntropyLoss()
                 if optimizerType == "SGD":
                     optimizer = torch.optim.SGD(model.parameters(), lr=learningRate)
@@ -135,13 +135,7 @@ class Main():
                         labels = labels.type(torch.LongTensor)
                         optimizer.zero_grad()
                         outputs = model(inputs)
-                        print(f"THis is model output shape: {outputs.shape}")
-                        print(labels)
-                        print(f"THis is labels  shape: {labels.shape}")
-                        print(outputs.dtype)
-                        
                         loss = lossFunc(outputs, labels)
-                        print("ZAGGGGGGG")
                         loss.backward()
                         optimizer.step()
                     training_losses.append(loss.item())
