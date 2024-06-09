@@ -114,7 +114,7 @@ class Main():
 
 
     def startNN(self):
-        if True:
+        if self.checkGPU():
             if self.getDatasetPath():
                 self.getUserParams()
                 self.loadDataFromCsv()
