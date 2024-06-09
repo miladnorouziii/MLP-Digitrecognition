@@ -92,13 +92,12 @@ class Main():
         xVal = self.scaler.transform(xValTemp)
         xTest = self.scaler.transform(xTestTemp)
         print("Generationg Dataloader ...\n")
-        print(yTrain)
         tensorXTrain = torch.Tensor(xTrain)
-        tensorYTrain = torch.Tensor(yTrain.to_numpy()).unsqueeze(1)
+        tensorYTrain = torch.Tensor(yTrain.to_numpy())#.unsqueeze(1)
         tensorXVal = torch.Tensor(xVal)
-        tensorYVal = torch.Tensor(yVal.to_numpy()).unsqueeze(1)
+        tensorYVal = torch.Tensor(yVal.to_numpy())#.unsqueeze(1)
         tensorXTest = torch.Tensor(xTest)
-        tensorYTest = torch.Tensor(yTest.to_numpy()).unsqueeze(1)
+        tensorYTest = torch.Tensor(yTest.to_numpy())#.unsqueeze(1)
         trainDataset = CustomDataset(tensorXTrain, tensorYTrain)
         valDataset = CustomDataset(tensorXVal, tensorYVal)
         testDataset = CustomDataset(tensorXTest, tensorYTest)
@@ -108,13 +107,13 @@ class Main():
     
 
     def startNN(self):
-        if self.checkGPU():
+        if True:
             if self.getDatasetPath():
                 self.getUserParams()
                 self.loadDataFromCsv()
                 inputDim = 784
                 outputDim = 10
-                model = MLP(inputDim, hiddenSize1, hiddenSize2, hiddenSize3, outputDim).to(device)
+                model = MLP(inputDim, hiddenSize1, hiddenSize2, hiddenSize3, outputDim)#.to(device)
                 lossFunc = nn.CrossEntropyLoss()
                 if optimizerType == "SGD":
                     optimizer = torch.optim.SGD(model.parameters(), lr=learningRate)
@@ -133,20 +132,26 @@ class Main():
                 for epoch in range(iteration):
                     for inputs, labels in trainLoader:
                         inputs, labels = inputs.to("cuda"), labels.to("cuda")
+                        labels = labels.type(torch.LongTensor)
                         optimizer.zero_grad()
                         outputs = model(inputs)
                         print(f"THis is model output shape: {outputs.shape}")
+                        print(labels)
+                        print(f"THis is labels  shape: {labels.shape}")
+                        print(outputs.dtype)
+                        
                         loss = lossFunc(outputs, labels)
+                        print("ZAGGGGGGG")
                         loss.backward()
                         optimizer.step()
                     training_losses.append(loss.item())
-                print(model)
                 model.eval()
                 with torch.no_grad():
                     correct = 0
                     total = 0
                     for inputs, labels in valLoader:
                         inputs, labels = inputs.to("cuda"), labels.to("cuda")
+                        labels = labels.type(torch.LongTensor)
                         outputs = model(inputs)
                         predicted = (outputs >= 0.5).float()
                         correct += (predicted == labels).sum().item()
@@ -159,6 +164,7 @@ class Main():
                     total = 0
                     for inputs, labels in testLoader:
                         inputs, labels = inputs.to("cuda"), labels.to("cuda")
+                        labels = labels.type(torch.LongTensor)
                         outputs = model(inputs)
                         predicted = (outputs >= 0.5).float()
                         correct += (predicted == labels).sum().item()
