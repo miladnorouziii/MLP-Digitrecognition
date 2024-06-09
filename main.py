@@ -82,7 +82,7 @@ class Main():
         dataset = pd.read_csv(path + '/train.csv')
         print("A quick peek o dataset! ...\n")
         print(dataset.head())
-        x = dataset.iloc[:, 1:784]
+        x = dataset.iloc[:, 1:785]
         y = dataset.iloc[:, 0]
         print("Generating train, validation and test sets ...\n")
         xTrainTemp, xValTemp, yTrain, yVal = train_test_split(x, y, test_size=validationPercent)
