@@ -134,8 +134,9 @@ class Main():
                 testLoader.to("cuda")
                 for epoch in range(iteration):
                     for inputs, labels in trainLoader:
-                        #inputs, labels = inputs.to("cuda"), labels.to("cuda")
                         labels = labels.type(torch.LongTensor)
+                        inputs, labels = inputs.to("cuda"), labels.to("cuda")
+                        #labels = labels.type(torch.LongTensor)
                         optimizer.zero_grad()
                         outputs = model(inputs)
                         loss = lossFunc(outputs, labels)
@@ -147,8 +148,9 @@ class Main():
                     correct = 0
                     total = 0
                     for inputs, labels in valLoader:
-                        #inputs, labels = inputs.to("cuda"), labels.to("cuda")
                         labels = labels.type(torch.LongTensor)
+                        inputs, labels = inputs.to("cuda"), labels.to("cuda")
+                        #labels = labels.type(torch.LongTensor)
                         outputs = model(inputs)
                         predicted = (outputs >= 0.5).float()
                         correct += (predicted == labels).sum().item()
@@ -160,8 +162,9 @@ class Main():
                     correct = 0
                     total = 0
                     for inputs, labels in testLoader:
-                        #inputs, labels = inputs.to("cuda"), labels.to("cuda")
                         labels = labels.type(torch.LongTensor)
+                        inputs, labels = inputs.to("cuda"), labels.to("cuda")
+                        #labels = labels.type(torch.LongTensor)
                         outputs = model(inputs)
                         predicted = (outputs >= 0.5).float()
                         correct += (predicted == labels).sum().item()
