@@ -101,9 +101,9 @@ class Main():
         trainDataset = CustomDataset(tensorXTrain, tensorYTrain)
         valDataset = CustomDataset(tensorXVal, tensorYVal)
         testDataset = CustomDataset(tensorXTest, tensorYTest)
-        trainLoader = DataLoader(trainDataset, batch_size=batchSize, shuffle=True)
-        valLoader = DataLoader(valDataset, batch_size=batchSize, shuffle=True)
-        testLoader = DataLoader(testDataset, batch_size=batchSize, shuffle=True)
+        trainLoader = DataLoader(trainDataset, batch_size=batchSize, shuffle=True).to("cuda")
+        valLoader = DataLoader(valDataset, batch_size=batchSize, shuffle=True).to("cuda")
+        testLoader = DataLoader(testDataset, batch_size=batchSize, shuffle=True).to("cuda")
     
 
     def startNN(self):
@@ -113,7 +113,7 @@ class Main():
                 self.loadDataFromCsv()
                 inputDim = 784
                 outputDim = 10
-                model = MLP(inputDim, hiddenSize1, hiddenSize2, hiddenSize3, outputDim).to(device)
+                model = MLP(inputDim, hiddenSize1, hiddenSize2, hiddenSize3, outputDim).to("cuda")
                 lossFunc = nn.CrossEntropyLoss()
                 if optimizerType == "SGD":
                     optimizer = torch.optim.SGD(model.parameters(), lr=learningRate)
@@ -131,7 +131,7 @@ class Main():
                 print(f"Model third layer neurons: {hiddenSize3}")
                 for epoch in range(iteration):
                     for inputs, labels in trainLoader:
-                        inputs, labels = inputs.to("cuda"), labels.to("cuda")
+                        #inputs, labels = inputs.to("cuda"), labels.to("cuda")
                         labels = labels.type(torch.LongTensor)
                         optimizer.zero_grad()
                         outputs = model(inputs)
@@ -144,7 +144,7 @@ class Main():
                     correct = 0
                     total = 0
                     for inputs, labels in valLoader:
-                        inputs, labels = inputs.to("cuda"), labels.to("cuda")
+                        #inputs, labels = inputs.to("cuda"), labels.to("cuda")
                         labels = labels.type(torch.LongTensor)
                         outputs = model(inputs)
                         predicted = (outputs >= 0.5).float()
@@ -157,7 +157,7 @@ class Main():
                     correct = 0
                     total = 0
                     for inputs, labels in testLoader:
-                        inputs, labels = inputs.to("cuda"), labels.to("cuda")
+                        #inputs, labels = inputs.to("cuda"), labels.to("cuda")
                         labels = labels.type(torch.LongTensor)
                         outputs = model(inputs)
                         predicted = (outputs >= 0.5).float()
