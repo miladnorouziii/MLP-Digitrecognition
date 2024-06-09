@@ -8,6 +8,7 @@ from sklearn.preprocessing import MinMaxScaler
 import torch.nn as nn
 from torch.utils.data import DataLoader
 import matplotlib.pyplot as plt
+import pickle
 
 
 class Main():
@@ -106,14 +107,20 @@ class Main():
         testLoader = DataLoader(testDataset, batch_size=batchSize, shuffle=True)
     
 
+    def saveModel(self, model):
+        filename = 'MLP-Digitrecognize.sav'
+        pickle.dump(model, open(filename, 'wb'))
+
+
+
     def startNN(self):
-        if self.checkGPU():
+        if True:
             if self.getDatasetPath():
                 self.getUserParams()
                 self.loadDataFromCsv()
                 inputDim = 784
                 outputDim = 10
-                model = MLP(inputDim, hiddenSize1, hiddenSize2, hiddenSize3, outputDim).to("cuda")
+                model = MLP(inputDim, hiddenSize1, hiddenSize2, hiddenSize3, outputDim)#.to("cuda")
                 lossFunc = nn.CrossEntropyLoss()
                 if optimizerType == "SGD":
                     optimizer = torch.optim.SGD(model.parameters(), lr=learningRate)
@@ -132,7 +139,7 @@ class Main():
                 for epoch in range(iteration):
                     for inputs, labels in trainLoader:
                         labels = labels.type(torch.LongTensor)
-                        inputs, labels = inputs.to("cuda"), labels.to("cuda")
+                        #inputs, labels = inputs.to("cuda"), labels.to("cuda")
                         #labels = labels.type(torch.LongTensor)
                         optimizer.zero_grad()
                         outputs = model(inputs)
@@ -145,7 +152,7 @@ class Main():
                     correct = 0
                     total = 0
                     for inputs, labels in valLoader:
-                        inputs, labels = inputs.to("cuda"), labels.to("cuda")
+                        #inputs, labels = inputs.to("cuda"), labels.to("cuda")
                         outputs = model(inputs)
                         _, predicted_classes = torch.max(outputs, dim=1)  # Get the class with highest probability
                         correct += (predicted_classes == labels).sum().item()
@@ -158,7 +165,7 @@ class Main():
                     total = 0
                     for inputs, labels in testLoader:
                         labels = labels.type(torch.LongTensor)
-                        inputs, labels = inputs.to("cuda"), labels.to("cuda")
+                        #inputs, labels = inputs.to("cuda"), labels.to("cuda")
                         #labels = labels.type(torch.LongTensor)
                         outputs = model(inputs)
                         _, predicted_classes = torch.max(outputs, dim=1)  # Get the class with highest probability
@@ -166,11 +173,14 @@ class Main():
                         total += labels.size(0)
                         accuracy = correct / total
                         print(f"Test Accuracy: {accuracy:.2f}")
+                if input("Do you want to save the model?(y/n): ") == "y":
+                    self.saveModel(model)
                 plt.plot(training_losses, label='Training Loss')
                 plt.xlabel('Iteration')
                 plt.ylabel('Loss')
                 plt.legend()
                 plt.show()
+
 
 
     
