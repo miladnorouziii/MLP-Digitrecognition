@@ -129,9 +129,6 @@ class Main():
                 print(f"Model first layer neurons: {hiddenSize1}")
                 print(f"Model second layer neurons: {hiddenSize2}")
                 print(f"Model third layer neurons: {hiddenSize3}")
-                trainLoader.to("cuda")
-                valLoader.to("cuda")
-                testLoader.to("cuda")
                 for epoch in range(iteration):
                     for inputs, labels in trainLoader:
                         labels = labels.type(torch.LongTensor)
