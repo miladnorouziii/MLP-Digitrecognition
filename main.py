@@ -92,12 +92,13 @@ class Main():
         xVal = self.scaler.transform(xValTemp)
         xTest = self.scaler.transform(xTestTemp)
         print("Generationg Dataloader ...\n")
+        print(yTrain)
         tensorXTrain = torch.Tensor(xTrain)
-        tensorYTrain = torch.Tensor(yTrain).unsqueeze(1)
+        tensorYTrain = torch.Tensor(yTrain.to_numpy()).unsqueeze(1)
         tensorXVal = torch.Tensor(xVal)
-        tensorYVal = torch.Tensor(yVal).unsqueeze(1)
+        tensorYVal = torch.Tensor(yVal.to_numpy()).unsqueeze(1)
         tensorXTest = torch.Tensor(xTest)
-        tensorYTest = torch.Tensor(yTest).unsqueeze(1)
+        tensorYTest = torch.Tensor(yTest.to_numpy()).unsqueeze(1)
         trainDataset = CustomDataset(tensorXTrain, tensorYTrain)
         valDataset = CustomDataset(tensorXVal, tensorYVal)
         testDataset = CustomDataset(tensorXTest, tensorYTest)
@@ -108,66 +109,66 @@ class Main():
 
     def startNN(self):
         if self.checkGPU():
-            self.getDatasetPath()
-            self.getUserParams()
-            self.loadDataFromCsv()
-            inputDim = 784
-            outputDim = 10
-            model = MLP(inputDim, hiddenSize1, hiddenSize2, hiddenSize3, outputDim).to(device)
-            lossFunc = nn.CrossEntropyLoss()
-            if optimizerType == "SGD":
-                optimizer = torch.optim.SGD(model.parameters(), lr=learningRate)
-            else:
-                optimizer = torch.optim.Adam(model.parameters(), lr=learningRate)
-            training_losses = []
-            print(f"Model is training on {iteration} of epochs")
-            print(f"Model validation percent: %{validationPercent*100}")
-            print(f"Model test percent: %{testPercent*100}")
-            print(f"Model learning rate: {learningRate}")
-            print(f"Model optimizer: {optimizerType}")
-            print(f"Model batch size: {batchSize}")
-            print(f"Model first layer neurons: {hiddenSize1}")
-            print(f"Model second layer neurons: {hiddenSize2}")
-            print(f"Model third layer neurons: {hiddenSize3}")
-            for epoch in range(iteration):
-                for inputs, labels in trainLoader:
-                    inputs, labels = inputs.to("cuda"), labels.to("cuda")
-                    optimizer.zero_grad()
-                    outputs = model(inputs)
-                    loss = lossFunc(outputs, labels)
-                    loss.backward()
-                    optimizer.step()
-                training_losses.append(loss.item())
-            print(model)
-            model.eval()
-            with torch.no_grad():
-                correct = 0
-                total = 0
-                for inputs, labels in valLoader:
-                    inputs, labels = inputs.to("cuda"), labels.to("cuda")
-                    outputs = model(inputs)
-                    predicted = (outputs >= 0.5).float()
-                    correct += (predicted == labels).sum().item()
-                    total += labels.size(0)
-                    accuracy = correct / total
-                    print(f"Validation Accuracy: {accuracy:.2f}")
-            model.train()
-            with torch.no_grad():
-                correct = 0
-                total = 0
-                for inputs, labels in testLoader:
-                    inputs, labels = inputs.to("cuda"), labels.to("cuda")
-                    outputs = model(inputs)
-                    predicted = (outputs >= 0.5).float()
-                    correct += (predicted == labels).sum().item()
-                    total += labels.size(0)
-                    accuracy = correct / total
-                    print(f"Test Accuracy: {accuracy:.2f}")
-            plt.plot(training_losses, label='Training Loss')
-            plt.xlabel('Iteration')
-            plt.ylabel('Loss')
-            plt.legend()
-            plt.show()
+            if self.getDatasetPath():
+                self.getUserParams()
+                self.loadDataFromCsv()
+                inputDim = 784
+                outputDim = 10
+                model = MLP(inputDim, hiddenSize1, hiddenSize2, hiddenSize3, outputDim).to(device)
+                lossFunc = nn.CrossEntropyLoss()
+                if optimizerType == "SGD":
+                    optimizer = torch.optim.SGD(model.parameters(), lr=learningRate)
+                else:
+                    optimizer = torch.optim.Adam(model.parameters(), lr=learningRate)
+                training_losses = []
+                print(f"Model is training on {iteration} of epochs")
+                print(f"Model validation percent: %{validationPercent*100}")
+                print(f"Model test percent: %{testPercent*100}")
+                print(f"Model learning rate: {learningRate}")
+                print(f"Model optimizer: {optimizerType}")
+                print(f"Model batch size: {batchSize}")
+                print(f"Model first layer neurons: {hiddenSize1}")
+                print(f"Model second layer neurons: {hiddenSize2}")
+                print(f"Model third layer neurons: {hiddenSize3}")
+                for epoch in range(iteration):
+                    for inputs, labels in trainLoader:
+                        inputs, labels = inputs.to("cuda"), labels.to("cuda")
+                        optimizer.zero_grad()
+                        outputs = model(inputs)
+                        loss = lossFunc(outputs, labels)
+                        loss.backward()
+                        optimizer.step()
+                    training_losses.append(loss.item())
+                print(model)
+                model.eval()
+                with torch.no_grad():
+                    correct = 0
+                    total = 0
+                    for inputs, labels in valLoader:
+                        inputs, labels = inputs.to("cuda"), labels.to("cuda")
+                        outputs = model(inputs)
+                        predicted = (outputs >= 0.5).float()
+                        correct += (predicted == labels).sum().item()
+                        total += labels.size(0)
+                        accuracy = correct / total
+                        print(f"Validation Accuracy: {accuracy:.2f}")
+                model.train()
+                with torch.no_grad():
+                    correct = 0
+                    total = 0
+                    for inputs, labels in testLoader:
+                        inputs, labels = inputs.to("cuda"), labels.to("cuda")
+                        outputs = model(inputs)
+                        predicted = (outputs >= 0.5).float()
+                        correct += (predicted == labels).sum().item()
+                        total += labels.size(0)
+                        accuracy = correct / total
+                        print(f"Test Accuracy: {accuracy:.2f}")
+                plt.plot(training_losses, label='Training Loss')
+                plt.xlabel('Iteration')
+                plt.ylabel('Loss')
+                plt.legend()
+                plt.show()
 
 
     
