@@ -72,8 +72,8 @@ class Main():
         batchSize = int(input("Enter batch size:(default 20): "))
         optimizerType = input("Which optimizer do you want to choose?(SGD/Adam): ")
         hiddenSize1 = int(input("Enter number of neurons in first layer:(default 128): "))
-        hiddenSize2 = int(input("Enter number of neurons in first layer:(default 64): "))
-        hiddenSize3 = int(input("Enter number of neurons in first layer:(default 32): "))
+        hiddenSize2 = int(input("Enter number of neurons in second layer:(default 64): "))
+        hiddenSize3 = int(input("Enter number of neurons in third layer:(default 32): "))
 
 
     
@@ -135,6 +135,7 @@ class Main():
                         inputs, labels = inputs.to("cuda"), labels.to("cuda")
                         optimizer.zero_grad()
                         outputs = model(inputs)
+                        print(f"THis is model output shape: {outputs.shape}")
                         loss = lossFunc(outputs, labels)
                         loss.backward()
                         optimizer.step()
