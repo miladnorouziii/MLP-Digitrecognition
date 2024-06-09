@@ -79,7 +79,7 @@ class Main():
     
     def loadDataFromCsv(self):
         global trainLoader, valLoader, testLoader
-        dataset = pd.read_csv(path + '/bdiag.csv')
+        dataset = pd.read_csv(path + '/train.csv')
         print("A quick peek o dataset! ...\n")
         print(dataset.head())
         x = dataset.iloc[:, 1:784]
