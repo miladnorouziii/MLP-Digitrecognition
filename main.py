@@ -1,3 +1,5 @@
+
+# TODO: Save model path is asked but never used !
 import torch
 import os.path
 from colorama import init, Fore, Style
@@ -14,6 +16,7 @@ import pickle
 class Main():
 
     path = None
+    savedModelPath = ""
     iteration = 1
     validationPercent = testPercent = 1
     learningRate = 0.1
@@ -58,6 +61,12 @@ class Main():
         path = input("Where can i find the dataset?(Write the path to dataset):  ")
         if os.path.isfile(path + '/train.csv'):
             print(self.colorText("Train dataset exist", "G"))
+            if input("Do you want to use a saved model?(y/n): ") == "y":
+                self.savedModelPath = input("Where can i find the saved model?(Write the path to model file):  ")
+                if os.path.isfile(self.savedModelPath + '/MLP-Digitrecognize.sav'):
+                    print(self.colorText("Saved model exist, using MLP-Digitrecognize.sav", "G"))
+                else:
+                    print(self.colorText("Failed to find model, starting generate a new model ..", "R"))
             return True
         else:
             print(self.colorText("Dataset doesn't exist. Check the directory!", "R"))
@@ -85,100 +94,132 @@ class Main():
         print(dataset.head())
         x = dataset.iloc[:, 1:785]
         y = dataset.iloc[:, 0]
-        print("Generating train, validation and test sets ...\n")
-        xTrainTemp, xValTemp, yTrain, yVal = train_test_split(x, y, test_size=validationPercent)
-        xTrainTemp, xTestTemp, yTrain, yTest = train_test_split(xTrainTemp, yTrain, test_size=testPercent)
-        print("Scaling data ...\n")
-        xTrain = self.scaler.fit_transform(xTrainTemp)
-        xVal = self.scaler.transform(xValTemp)
-        xTest = self.scaler.transform(xTestTemp)
-        print("Generationg Dataloader ...\n")
-        tensorXTrain = torch.Tensor(xTrain)
-        tensorYTrain = torch.Tensor(yTrain.to_numpy())#.unsqueeze(1)
-        tensorXVal = torch.Tensor(xVal)
-        tensorYVal = torch.Tensor(yVal.to_numpy())#.unsqueeze(1)
-        tensorXTest = torch.Tensor(xTest)
-        tensorYTest = torch.Tensor(yTest.to_numpy())#.unsqueeze(1)
-        trainDataset = CustomDataset(tensorXTrain, tensorYTrain)
-        valDataset = CustomDataset(tensorXVal, tensorYVal)
-        testDataset = CustomDataset(tensorXTest, tensorYTest)
-        trainLoader = DataLoader(trainDataset, batch_size=batchSize, shuffle=True)
-        valLoader = DataLoader(valDataset, batch_size=batchSize, shuffle=True)
-        testLoader = DataLoader(testDataset, batch_size=batchSize, shuffle=True)
+        if self.savedModelPath != "":
+            print("Generating test set ...\n")
+            xTrainTemp, xTestTemp, yTrain, yTest = train_test_split(x, y, test_size=0.1)
+            print("Scaling data ...\n")
+            xTest = self.scaler.fit_transform(xTestTemp)
+            tensorXTest = torch.Tensor(xTest)
+            tensorYTest = torch.Tensor(yTest.to_numpy())#.unsqueeze(1)
+            testDataset = CustomDataset(tensorXTest, tensorYTest)
+            testLoader = DataLoader(testDataset, batch_size=20, shuffle=True)
+        else:
+            print("Generating train, validation and test sets ...\n")
+            xTrainTemp, xValTemp, yTrain, yVal = train_test_split(x, y, test_size=validationPercent)
+            xTrainTemp, xTestTemp, yTrain, yTest = train_test_split(xTrainTemp, yTrain, test_size=testPercent)
+            print("Scaling data ...\n")
+            xTrain = self.scaler.fit_transform(xTrainTemp)
+            xVal = self.scaler.transform(xValTemp)
+            xTest = self.scaler.transform(xTestTemp)
+            print("Generationg Dataloader ...\n")
+            tensorXTrain = torch.Tensor(xTrain)
+            tensorYTrain = torch.Tensor(yTrain.to_numpy())#.unsqueeze(1)
+            tensorXVal = torch.Tensor(xVal)
+            tensorYVal = torch.Tensor(yVal.to_numpy())#.unsqueeze(1)
+            tensorXTest = torch.Tensor(xTest)
+            tensorYTest = torch.Tensor(yTest.to_numpy())#.unsqueeze(1)
+            trainDataset = CustomDataset(tensorXTrain, tensorYTrain)
+            valDataset = CustomDataset(tensorXVal, tensorYVal)
+            testDataset = CustomDataset(tensorXTest, tensorYTest)
+            trainLoader = DataLoader(trainDataset, batch_size=batchSize, shuffle=True)
+            valLoader = DataLoader(valDataset, batch_size=batchSize, shuffle=True)
+            testLoader = DataLoader(testDataset, batch_size=batchSize, shuffle=True)
     
 
     def saveModel(self, model):
         filename = 'MLP-Digitrecognize.sav'
         pickle.dump(model, open(filename, 'wb'))
 
+    def startSavedModel(self):
+        self.loadDataFromCsv()
+        loadedModel = pickle.load(open(self.savedModelPath + "/MLP-Digitrecognize.sav", 'rb')).to("cuda")
+        with torch.no_grad():
+            correct = 0
+            total = 0
+            for inputs, labels in testLoader:
+                labels = labels.type(torch.LongTensor)
+                inputs, labels = inputs.to("cuda"), labels.to("cuda")
+                outputs = loadedModel(inputs)
+                _, predicted_classes = torch.max(outputs, dim=1)  # Get the class with highest probability
+                correct += (predicted_classes == labels).sum().item()
+                total += labels.size(0)
+                accuracy = correct / total
+                print(f"This the label {labels} and this is the output{outputs}")
+            print(f"Test Accuracy: {accuracy:.2f}")
 
 
     def startNN(self):
-        if self.checkGPU():
-            if self.getDatasetPath():
-                self.getUserParams()
-                self.loadDataFromCsv()
-                inputDim = 784
-                outputDim = 10
-                model = MLP(inputDim, hiddenSize1, hiddenSize2, hiddenSize3, outputDim).to("cuda")
-                lossFunc = nn.CrossEntropyLoss()
-                if optimizerType == "SGD":
-                    optimizer = torch.optim.SGD(model.parameters(), lr=learningRate)
-                else:
-                    optimizer = torch.optim.Adam(model.parameters(), lr=learningRate)
-                training_losses = []
-                print(f"Model is training on {iteration} of epochs")
-                print(f"Model validation percent: %{validationPercent*100}")
-                print(f"Model test percent: %{testPercent*100}")
-                print(f"Model learning rate: {learningRate}")
-                print(f"Model optimizer: {optimizerType}")
-                print(f"Model batch size: {batchSize}")
-                print(f"Model first layer neurons: {hiddenSize1}")
-                print(f"Model second layer neurons: {hiddenSize2}")
-                print(f"Model third layer neurons: {hiddenSize3}")
-                for epoch in range(iteration):
-                    for inputs, labels in trainLoader:
-                        labels = labels.type(torch.LongTensor)
-                        inputs, labels = inputs.to("cuda"), labels.to("cuda")
-                        #labels = labels.type(torch.LongTensor)
-                        optimizer.zero_grad()
-                        outputs = model(inputs)
-                        loss = lossFunc(outputs, labels)
-                        loss.backward()
-                        optimizer.step()
-                    training_losses.append(loss.item())
-                model.eval()
-                with torch.no_grad():
-                    correct = 0
-                    total = 0
-                    for inputs, labels in valLoader:
-                        inputs, labels = inputs.to("cuda"), labels.to("cuda")
-                        outputs = model(inputs)
-                        _, predicted_classes = torch.max(outputs, dim=1)  # Get the class with highest probability
-                        correct += (predicted_classes == labels).sum().item()
-                        total += labels.size(0)
-                    accuracy = correct / total
-                    print(f"Validation Accuracy: {accuracy:.2f}")
-                model.train()
-                with torch.no_grad():
-                    correct = 0
-                    total = 0
-                    for inputs, labels in testLoader:
-                        labels = labels.type(torch.LongTensor)
-                        inputs, labels = inputs.to("cuda"), labels.to("cuda")
-                        #labels = labels.type(torch.LongTensor)
-                        outputs = model(inputs)
-                        _, predicted_classes = torch.max(outputs, dim=1)  # Get the class with highest probability
-                        correct += (predicted_classes == labels).sum().item()
-                        total += labels.size(0)
+        if self.getDatasetPath():
+            if self.savedModelPath != "":
+                self.startSavedModel()
+            else:
+                if self.checkGPU():
+                    self.getUserParams()
+                    self.loadDataFromCsv()
+                    inputDim = 784
+                    outputDim = 10
+                    model = MLP(inputDim, hiddenSize1, hiddenSize2, hiddenSize3, outputDim).to("cuda")
+                    lossFunc = nn.CrossEntropyLoss()
+                    if optimizerType == "SGD":
+                        optimizer = torch.optim.SGD(model.parameters(), lr=learningRate)
+                    else:
+                        optimizer = torch.optim.Adam(model.parameters(), lr=learningRate)
+                    training_losses = []
+                    print(f"Model is training on {iteration} of epochs")
+                    print(f"Model validation percent: %{validationPercent*100}")
+                    print(f"Model test percent: %{testPercent*100}")
+                    print(f"Model learning rate: {learningRate}")
+                    print(f"Model optimizer: {optimizerType}")
+                    print(f"Model batch size: {batchSize}")
+                    print(f"Model first layer neurons: {hiddenSize1}")
+                    print(f"Model second layer neurons: {hiddenSize2}")
+                    print(f"Model third layer neurons: {hiddenSize3}")
+                    for epoch in range(iteration):
+                        for inputs, labels in trainLoader:
+                            labels = labels.type(torch.LongTensor)
+                            inputs, labels = inputs.to("cuda"), labels.to("cuda")
+                            #labels = labels.type(torch.LongTensor)
+                            optimizer.zero_grad()
+                            outputs = model(inputs)
+                            loss = lossFunc(outputs, labels)
+                            loss.backward()
+                            optimizer.step()
+                        training_losses.append(loss.item())
+                    model.eval()
+                    with torch.no_grad():
+                        correct = 0
+                        total = 0
+                        for inputs, labels in valLoader:
+                            inputs, labels = inputs.to("cuda"), labels.to("cuda")
+                            outputs = model(inputs)
+                            _, predicted_classes = torch.max(outputs, dim=1)  # Get the class with highest probability
+                            correct += (predicted_classes == labels).sum().item()
+                            total += labels.size(0)
                         accuracy = correct / total
-                        print(f"Test Accuracy: {accuracy:.2f}")
-                self.saveModel(model)
-                plt.plot(training_losses, label='Training Loss')
-                plt.xlabel('Iteration')
-                plt.ylabel('Loss')
-                plt.legend()
-                plt.show()
+                        print(f"Validation Accuracy: {accuracy:.2f}")
+                    model.train()
+                    with torch.no_grad():
+                        correct = 0
+                        total = 0
+                        for inputs, labels in testLoader:
+                            labels = labels.type(torch.LongTensor)
+                            inputs, labels = inputs.to("cuda"), labels.to("cuda")
+                            #labels = labels.type(torch.LongTensor)
+                            outputs = model(inputs)
+                            _, predicted_classes = torch.max(outputs, dim=1)  # Get the class with highest probability
+                            correct += (predicted_classes == labels).sum().item()
+                            total += labels.size(0)
+                            accuracy = correct / total
+                            print(f"Test Accuracy: {accuracy:.2f}")
+                    self.saveModel(model)
+                    plt.plot(training_losses, label='Training Loss')
+                    plt.xlabel('Iteration')
+                    plt.ylabel('Loss')
+                    plt.legend()
+                    plt.show()
+
+    
+               
 
 
 
