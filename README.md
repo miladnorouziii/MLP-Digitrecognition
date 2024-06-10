@@ -1,4 +1,4 @@
-# MLP-Digitrecognition
+# MLP Digit recognition
 
 The example codes above are related to a 5-layer MLP NN (Input layer - 3 hidden layer - Output layer) classification for the problem of recognizing numbers from 0 to 9.
 
