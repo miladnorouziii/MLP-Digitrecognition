@@ -17,4 +17,3 @@ Run the main.py file to run the code. After running the code, you will need to s
 *The number of neurons in the first layer
 *The number of neurons in the second layer
 *The number of neurons in the third layer
-آهیی
