@@ -6,14 +6,14 @@ For this issue, the dataset available in the link below has been used. https://w
 
 Run the main.py file to run the code. After running the code, you will need to specify the following.
 
-*The dataset path
-*If you want to use a previously saved model, the path to the saved model must be specified
-*The number of iteration steps (Epochs)
-*Data validation percentage
-*Test set percentage
-*Learning rate
-*Batch size
-*Optimizer model
-*The number of neurons in the first layer
-*The number of neurons in the second layer
-*The number of neurons in the third layer
+* The dataset path
+* If you want to use a previously saved model, the path to the saved model must be specified
+* The number of iteration steps (Epochs)
+* Data validation percentage
+* Test set percentage
+* Learning rate
+* Batch size
+* Optimizer model
+* The number of neurons in the first layer
+* The number of neurons in the second layer
+* The number of neurons in the third layer
